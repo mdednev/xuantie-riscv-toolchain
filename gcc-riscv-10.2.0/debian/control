@@ -1,0 +1,40 @@
+Source: gcc-riscv
+Section: devel
+Priority: extra
+Maintainer: Max A. Dednev <m.dednev@securitycode.ru>
+Build-Depends:
+ autoconf2.64,
+ autogen,
+ autotools-dev,
+ binutils-riscv,
+ bison,
+ debhelper (>= 8.0.0),
+ dh-autoreconf,
+ dejagnu,
+ flex,
+ gawk,
+ gettext,
+ libgmp-dev,
+ libmpc-dev,
+ libmpfr-dev,
+ libtool,
+ locales,
+ lsb-release,
+ lzma,
+ m4,
+ patchutils,
+ sharutils,
+ texinfo,
+ xz-utils,
+ zlib1g-dev
+Standards-Version: 3.9.5
+Homepage: http://gcc.gnu.org/
+X-Python-Version: >= 2.7
+
+Package: gcc-riscv
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}, binutils-riscv
+Replaces: gcc-riscv-bootstrap
+Recommends: libnewlib-riscv-unknown-elf
+Description: GCC cross compiler for RISC-V processors
+ Bare metal compiler for embedded RISC-V processors.

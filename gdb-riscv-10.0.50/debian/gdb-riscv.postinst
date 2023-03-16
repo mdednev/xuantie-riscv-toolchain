@@ -1,0 +1,16 @@
+#! /bin/sh
+
+set -e
+
+for binary in gdb \
+              gdb-add-index; do
+    update-alternatives --quiet --install \
+        /usr/bin/rv64-${binary} rv64-${binary} \
+        /usr/bin/riscv64-unknown-elf-${binary} 20
+done
+
+#DEBHELPER#
+
+exit 0
+
+# vim: set filetype=sh ts=4 sw=4 sts=4 et:

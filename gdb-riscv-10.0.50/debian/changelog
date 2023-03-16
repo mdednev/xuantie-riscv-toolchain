@@ -1,0 +1,6 @@
+gdb-riscv (10.0.50-THead+2.61) stable; urgency=medium
+
+  * New version based on gdb-10.0 git release at tag THead-2.61
+    https://github.com/T-head-Semi/binutils-gdb.git
+
+ -- Max A. Dednev <m.dednev@securitycode.ru>  Sun, 12 Mar 2023 18:29:05 +0300

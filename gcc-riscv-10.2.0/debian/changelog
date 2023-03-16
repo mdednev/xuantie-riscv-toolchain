@@ -1,0 +1,7 @@
+gcc-riscv (10.2.0-THead+2.61) stable; urgency=medium
+
+  * New version based on gcc-10.2 git release at tag THead-2.61
+    https://github.com/T-head-Semi/gcc.git
+  * Added support for interrupt("WCH-Interrupt-fast") attribute.
+
+ -- Max A. Dednev <m.dednev@securitycoder.ru>  Sun, 13 Mar 2023 19:40:11 +0300

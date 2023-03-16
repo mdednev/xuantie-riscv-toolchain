@@ -1,0 +1,65 @@
+Source: newlib-riscv
+Section: devel
+Priority: extra
+Maintainer: Max A. Dednev <m.dednev@securitycode.ru>
+Build-Depends:
+ debhelper (>= 9),
+ texinfo,
+ dpkg-dev (>= 1.16.0),
+ autotools-dev,
+ dejagnu,
+ gcc-riscv-bootstrap,
+ xz-utils,
+ rename
+Standards-Version: 3.9.5
+Homepage: https://sourceware.org/newlib/
+
+Package: libnewlib-riscv-dev
+Architecture: all
+Section: libdevel
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Breaks: libnewlib0
+Replaces: libnewlib0
+Suggests: libnewlib-riscv, gcc-riscv
+Description: C library and math library intended for use on embedded systems
+ Newlib is a C library and math library intended for use on embedded systems.
+ It is a conglomeration of several library parts, all under free software
+ licenses that make them easily usable on embedded products.
+ .
+ This package contains the newlib headers.
+
+Package: libnewlib-riscv-doc
+Architecture: all
+Section: doc
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: libnewlib-riscv-dev
+Description: C library and math library intended for use on embedded systems (doc)
+ Newlib is a C library and math library intended for use on embedded systems.
+ It is a conglomeration of several library parts, all under free software
+ licenses that make them easily usable on embedded products.
+ .
+ This package contains the newlib documentation.
+
+Package: libnewlib-riscv
+Architecture: all
+Section: libs
+Depends: ${shlibs:Depends}, ${misc:Depends}, libnewlib-riscv-dev
+Recommends: gcc-riscv, libstdc++-riscv-newlib
+Suggests: libnewlib-riscv-doc
+Description: C library and math library compiled for bare metal RISC-V
+ Newlib is a C library and math library intended for use on embedded systems.
+ It is a conglomeration of several library parts, all under free software
+ licenses that make them easily usable on embedded products.
+ .
+ This package contains the newlib library compiled for RISC-V target.
+
+Package: newlib-riscv-source
+Architecture: all
+Recommends: xz-utils
+Depends: ${misc:Depends}
+Description: C library and math library intended for use on embedded systems (source)
+ Newlib is a C library and math library intended for use on embedded systems.
+ It is a conglomeration of several library parts, all under free software
+ licenses that make them easily usable on embedded products.
+ .
+ This package contains the newlib library source tarball.

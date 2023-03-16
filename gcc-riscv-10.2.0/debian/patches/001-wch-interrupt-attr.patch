@@ -1,0 +1,117 @@
+diff -ur a/gcc-10.2/gcc/config/riscv/riscv.c b/gcc-10.2/gcc/config/riscv/riscv.c
+--- a/gcc-10.2/gcc/config/riscv/riscv.c	2022-12-04 18:58:07.000000000 +0300
++++ b/gcc-10.2/gcc/config/riscv/riscv.c	2023-03-13 16:36:22.441475967 +0300
+@@ -3518,11 +3518,11 @@
+ 
+ 	  string = TREE_STRING_POINTER (cst);
+ 	  if (strcmp (string, "user") && strcmp (string, "supervisor")
+-	      && strcmp (string, "machine"))
++ 	      && strcmp (string, "machine") && strcmp(string, "WCH-Interrupt-fast"))
+ 	    {
+ 	      warning (OPT_Wattributes,
+-		       "argument to %qE attribute is not \"user\", \"supervisor\", or \"machine\"",
+-		       name);
++		       "argument to %qE attribute is not \"user\", \"supervisor\", "
++ 		       "\"machine\" or \"WCH-Interrupt-fast\"", name);
+ 	      *no_add_attrs = true;
+ 	    }
+ 	}
+@@ -4165,6 +4165,13 @@
+   return set;
+ }
+ 
++/* Return true if WCH fast interrupt hardware saves register REGNO */
++static bool
++riscv_wch_fast_interrupt_saved_reg (unsigned int regno)
++{
++  return call_used_or_fixed_reg_p(regno) || regno == RETURN_ADDR_REGNUM;
++}
++
+ /* Return true if the current function must save register REGNO.  */
+ 
+ static bool
+@@ -4174,6 +4181,16 @@
+   bool might_clobber = crtl->saves_all_registers
+ 		       || df_regs_ever_live_p (regno);
+ 
++  /* WCH Fast interrupts are hardware-saved.
++   *
++   * If this is a WCH fast mode interrupt, and if the register is one of
++   * the caller-saved set, or ra (which is what WCH saves for us), then we can
++   * rely on hardware to save the register */
++  if (cfun->machine->interrupt_handler_p
++      && cfun->machine->interrupt_mode == WCH_FAST_MODE
++      && riscv_wch_fast_interrupt_saved_reg(regno))
++    return false;
++
+   if (call_saved && might_clobber)
+     return true;
+ 
+@@ -4307,6 +4324,8 @@
+ 
+   /* In an interrupt function, if we have a large frame, then we need to
+      save/restore t0.  We check for this before clearing the frame struct.  */
++
++  // TODO OPT - does this matter? T0 is theoretically restored for us; can we skip cleanup?
+   if (cfun->machine->interrupt_handler_p)
+     {
+       HOST_WIDE_INT step1 = riscv_first_stack_step (frame);
+@@ -5090,7 +5109,7 @@
+ 
+       if (TARGET_XTHEAD_INTERRUPT_HANDLER_P ())
+ 	emit_jump_insn (gen_riscv_ipop ());
+-      else if (mode == MACHINE_MODE)
++      else if (mode == MACHINE_MODE || mode == WCH_FAST_MODE)
+ 	emit_jump_insn (gen_riscv_mret ());
+       else if (mode == SUPERVISOR_MODE)
+ 	emit_jump_insn (gen_riscv_sret ());
+@@ -5106,6 +5125,13 @@
+ bool
+ riscv_epilogue_uses (unsigned int regno)
+ {
++  /* The WCH hardware will restore some regs in a fast interrupt
++   * so those regs are dead */
++  if (epilogue_completed && cfun->machine->interrupt_handler_p
++      && cfun->machine->interrupt_mode == WCH_FAST_MODE
++      && riscv_wch_fast_interrupt_saved_reg (regno))
++    return false;
++
+   if (regno == RETURN_ADDR_REGNUM)
+     return true;
+ 
+@@ -5921,6 +5947,8 @@
+ 	return USER_MODE;
+       else if (!strcmp (string, "supervisor"))
+ 	return SUPERVISOR_MODE;
++      else if (!strcmp (string, "WCH-Interrupt-fast"))
++	return WCH_FAST_MODE;
+       else /* Must be "machine".  */
+ 	return MACHINE_MODE;
+     }
+@@ -6078,6 +6106,12 @@
+ riscv_hard_regno_rename_ok (unsigned from_regno ATTRIBUTE_UNUSED,
+ 			    unsigned to_regno)
+ {
++  /* For WCH fast interrupts, TO_REG may also be any of the hardware saved registers */
++  if (cfun->machine->interrupt_handler_p
++      && cfun->machine->interrupt_mode == WCH_FAST_MODE
++      && riscv_wch_fast_interrupt_saved_reg (to_regno))
++    return true;
++
+   /* Interrupt functions can only use registers that have already been
+      saved by the prologue, even if they would normally be
+      call-clobbered.  */
+Только в gcc-10.2/gcc/config/riscv: riscv.c~
+diff -ur a/gcc-10.2/gcc/config/riscv/riscv.h b/gcc-10.2/gcc/config/riscv/riscv.h
+--- a/gcc-10.2/gcc/config/riscv/riscv.h	2022-12-04 18:58:07.000000000 +0300
++++ b/gcc-10.2/gcc/config/riscv/riscv.h	2023-03-13 16:26:39.762290485 +0300
+@@ -1119,7 +1119,7 @@
+ };
+ 
+ enum riscv_privilege_levels {
+-  UNKNOWN_MODE, USER_MODE, SUPERVISOR_MODE, MACHINE_MODE
++  UNKNOWN_MODE, USER_MODE, SUPERVISOR_MODE, MACHINE_MODE, WCH_FAST_MODE
+ };
+ 
+ struct GTY(())  machine_function {
+Только в gcc-10.2/gcc/config/riscv: riscv.h~
